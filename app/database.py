@@ -8,8 +8,12 @@ import os
 database_url = os.getenv("DATABASE_URL", "sqlite:///./fit_tracker.db")
 
 # Render's PostgreSQL URLs use postgres:// but SQLAlchemy needs postgresql://
+# Also use psycopg (v3) instead of psycopg2 for better Python 3.13 support
 if database_url.startswith("postgres://"):
-    database_url = database_url.replace("postgres://", "postgresql://", 1)
+    database_url = database_url.replace("postgres://", "postgresql+psycopg://", 1)
+elif database_url.startswith("postgresql://") and "+" not in database_url:
+    # If it's postgresql:// without a driver, add psycopg driver
+    database_url = database_url.replace("postgresql://", "postgresql+psycopg://", 1)
 
 # Configure engine based on database type
 if database_url.startswith("sqlite"):
