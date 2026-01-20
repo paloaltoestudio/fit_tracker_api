@@ -77,3 +77,11 @@ def verify_token(token: str) -> Optional[dict]:
         return payload
     except JWTError:
         return None
+
+
+def get_current_user_id(token: str) -> Optional[int]:
+    """Extract user_id from JWT token"""
+    payload = verify_token(token)
+    if payload is None:
+        return None
+    return payload.get("user_id")
