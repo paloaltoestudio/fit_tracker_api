@@ -1,12 +1,25 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+import os
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./fit_tracker.db"
+# Get database URL from environment (Render provides DATABASE_URL)
+# For SQLite (local dev), use the default
+database_url = os.getenv("DATABASE_URL", "sqlite:///./fit_tracker.db")
 
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-)
+# Render's PostgreSQL URLs use postgres:// but SQLAlchemy needs postgresql://
+if database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+# Configure engine based on database type
+if database_url.startswith("sqlite"):
+    engine = create_engine(
+        database_url, connect_args={"check_same_thread": False}
+    )
+else:
+    # PostgreSQL (for production on Render)
+    engine = create_engine(database_url)
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
