@@ -208,7 +208,7 @@ async def update_weight(
     )
 
 
-@router.delete("/weights/{weight_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/weights/{weight_id}", status_code=status.HTTP_200_OK)
 async def delete_weight(
     weight_id: int,
     current_user: User = Depends(get_current_user),
@@ -222,4 +222,4 @@ async def delete_weight(
     db.delete(weight)
     db.commit()
     
-    return None
+    return {"message": f"Weight entry with id {weight_id} has been successfully deleted"}
