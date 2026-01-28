@@ -75,46 +75,44 @@ alembic upgrade head
 
 ### Running migrations on Render (PostgreSQL)
 
-Deploying new code does **not** run migrations by itself. You need Render to run `alembic upgrade head` before each deploy.
+Deploying new code does **not** run migrations by itself. Render’s Postgres only changes when *you* run Alembic (or when a Pre-Deploy command runs it, if you have that).
 
-1. **Pre-Deploy Command (recommended)**  
-   In the Render dashboard: your Web Service → **Settings** → **Build & Deploy** → **Pre-Deploy Command**  
-   Set it to:
+**Environment:** Your Postgres must be linked to the service so `DATABASE_URL` is set. Get that URL from **Dashboard → PostgreSQL → Info** (Internal Database URL) or from your Web Service **Environment**.
+
+---
+
+#### Free tier (no Shell, no Pre-Deploy)
+
+On the free tier you run **all** migrations from your laptop, with `DATABASE_URL` set to Render’s Postgres URL. You never run anything on Render itself.
+
+**One-time: existing DB** (tables were created by the app with `create_all`, no profile columns yet):
+
+```bash
+export DATABASE_URL="postgres://user:pass@host/dbname"   # your real Render URL
+alembic stamp 001_initial
+alembic upgrade head
+```
+
+Then deploy. After that, Render’s DB is in sync with your migrations.
+
+**Every new migration after that:**
+
+1. Edit `app/models.py`.
+2. Locally (SQLite): `alembic revision --autogenerate -m "Add xyz"` then `alembic upgrade head`.
+3. Commit the new file in `alembic/versions/` and push.
+4. **Before (or right after) deploy**, run against Render’s DB from your laptop:
    ```bash
+   export DATABASE_URL="postgres://user:pass@host/dbname"
    alembic upgrade head
    ```
-   Render runs this before switching traffic to the new version. If it fails, the deploy is aborted and the previous version stays live.
+5. Deploy.
 
-2. **Environment**  
-   Your Postgres database must be linked to the service so `DATABASE_URL` is set (Render does this when you add the DB). Alembic uses that same variable.
+So for each new migration you do two things: `alembic upgrade head` on local SQLite (step 2), and again with `DATABASE_URL` set to Render’s URL (step 4). The second run is what updates Render’s Postgres; without Pre-Deploy, nothing on Render runs it for you.
 
-3. **First deploy / “stamp” without Shell (Free tier)**  
-   On the free tier there is no Shell. Run migrations from your **local machine** using Render’s Postgres URL:
+---
 
-   - **New Postgres DB (no tables yet):**  
-     Deploy as usual. Pre-Deploy runs `alembic upgrade head` and creates all tables. Nothing else to do.
+#### If you have Pre-Deploy (paid / higher tiers)
 
-   - **Existing Postgres DB** (tables were created by the app with `create_all`, e.g. before profile columns existed):  
-     1. In Render: **Dashboard** → your **PostgreSQL** → **Info** (or your **Web Service** → **Environment**). Copy the **Internal Database URL** (or the `DATABASE_URL` your service uses).  
-     2. On your laptop, open a **terminal**, `cd` into the project root, and run the commands below. **Where to set `DATABASE_URL`:** only in that terminal session—either **inline** (left side of the command) or with **`export`** first; you do **not** add it to a config file.
-
-        **Option A – inline (one command at a time):**
-        ```bash
-        DATABASE_URL="postgres://user:pass@host/dbname" alembic stamp 001_initial
-        DATABASE_URL="postgres://user:pass@host/dbname" alembic upgrade head
-        ```
-        Replace `postgres://user:pass@host/dbname` with your real URL from Render.
-
-        **Option B – export in the same terminal, then run Alembic:**
-        ```bash
-        export DATABASE_URL="postgres://user:pass@host/dbname"
-        alembic stamp 001_initial
-        alembic upgrade head
-        ```
-        Again, use your real URL. The variable applies only to that terminal window until you close it.
-
-     3. Deploy. Pre-Deploy will run `alembic upgrade head` on future deploys; your DB is already up to date.
-
-   That way you never need Render’s Shell.
-
-After that, each deploy runs the Pre-Deploy Command and applies any new migrations automatically.
+1. In Render: **Settings → Build & Deploy → Pre-Deploy Command** → `alembic upgrade head`.
+2. One-time for an existing DB: run `alembic stamp 001_initial` and `alembic upgrade head` from your laptop with Render’s `DATABASE_URL` (same as above).
+3. From then on: create migrations locally, commit, push, deploy. Pre-Deploy runs `alembic upgrade head` on Render; you don’t run it against Render’s DB from your machine.
