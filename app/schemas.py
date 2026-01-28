@@ -33,6 +33,23 @@ class UserResponse(BaseModel):
         from_attributes = True
 
 
+class ProfileResponse(BaseModel):
+    id: int
+    username: str
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    age: Optional[int] = None
+
+    class Config:
+        from_attributes = True
+
+
+class ProfileUpdate(BaseModel):
+    first_name: Optional[str] = Field(None, max_length=50)
+    last_name: Optional[str] = Field(None, max_length=50)
+    age: Optional[int] = Field(None, ge=1, le=150)
+
+
 class WeightCreate(BaseModel):
     weight: float = Field(..., gt=0, description="Weight in kg")
     date: str = Field(..., description="Date in YYYY-MM-DD format")
