@@ -48,7 +48,9 @@ async def get_profile(
         username=current_user.username,
         first_name=current_user.first_name,
         last_name=current_user.last_name,
-        age=current_user.age
+        age=current_user.age,
+        height_cm=current_user.height_cm,
+        gender=current_user.gender
     )
 
 
@@ -71,6 +73,12 @@ async def update_profile(
     if profile_data.age is not None:
         current_user.age = profile_data.age
     
+    if profile_data.height_cm is not None:
+        current_user.height_cm = profile_data.height_cm
+    
+    if profile_data.gender is not None:
+        current_user.gender = profile_data.gender
+    
     db.commit()
     db.refresh(current_user)
     
@@ -79,5 +87,7 @@ async def update_profile(
         username=current_user.username,
         first_name=current_user.first_name,
         last_name=current_user.last_name,
-        age=current_user.age
+        age=current_user.age,
+        height_cm=current_user.height_cm,
+        gender=current_user.gender
     )

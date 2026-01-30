@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
-from app.models import User, Weight  # Import models so tables are created
-from app.routers import auth, weights, profile
+from app.models import User, Weight, MetricEntry  # Import models so tables are created
+from app.routers import auth, weights, profile, metrics
 
 # Create database tables (must import models first)
 Base.metadata.create_all(bind=engine)
@@ -22,6 +22,7 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/api/v1", tags=["authentication"])
 app.include_router(weights.router, prefix="/api/v1", tags=["weights"])
 app.include_router(profile.router, prefix="/api/v1", tags=["profile"])
+app.include_router(metrics.router, prefix="/api/v1", tags=["metrics"])
 
 
 @app.get("/")

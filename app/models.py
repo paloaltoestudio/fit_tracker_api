@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Float, ForeignKey, Date
+from sqlalchemy import Column, Integer, String, DateTime, Float, ForeignKey, Date, JSON, UniqueConstraint
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from app.database import Base
@@ -15,6 +15,8 @@ class User(Base):
     first_name = Column(String, nullable=True)
     last_name = Column(String, nullable=True)
     age = Column(Integer, nullable=True)
+    height_cm = Column(Float, nullable=True)
+    gender = Column(String, nullable=True)  # "Male" or "Female"
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
@@ -34,3 +36,18 @@ class Weight(Base):
     
     # Relationship to user
     user = relationship("User", back_populates="weights")
+
+
+class MetricEntry(Base):
+    __tablename__ = "metric_entries"
+    __table_args__ = (UniqueConstraint("user_id", "metric_type", "date", name="uq_user_metric_date"),)
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    metric_type = Column(String, nullable=False, index=True)  # "weight", "muscle_index", etc.
+    date = Column(Date, nullable=False, index=True)
+    value = Column(JSON, nullable=False)  # Flexible payload per metric type
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Relationship to user
+    user = relationship("User", backref="metric_entries")

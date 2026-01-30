@@ -10,7 +10,7 @@ from alembic import context
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.database import Base
-from app.models import User, Weight  # noqa: F401 - load models into Base.metadata
+from app.models import User, Weight, MetricEntry  # noqa: F401 - load models into Base.metadata
 
 config = context.config
 
