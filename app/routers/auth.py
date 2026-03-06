@@ -4,13 +4,16 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User
-from app.schemas import Token, UserLogin, UserCreate, UserResponse
+from app.schemas import Token, UserLogin, UserCreate, UserResponse, ForgotPasswordRequest, ResetPasswordRequest
 from app.auth import (
     verify_password,
     get_password_hash,
     create_access_token,
     ACCESS_TOKEN_EXPIRE_MINUTES,
+    create_password_reset_token,
+    verify_password_reset_token,
 )
+from app.email import send_password_reset_email
 
 router = APIRouter()
 
@@ -60,12 +63,20 @@ async def register(
     Register a new user (useful for development)
     """
     try:
-        # Check if user already exists
+        # Check if username already exists
         existing_user = db.query(User).filter(User.username == user_data.username).first()
         if existing_user:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Username already registered"
+            )
+
+        # Check if email already exists
+        existing_email = db.query(User).filter(User.email == user_data.email).first()
+        if existing_email:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email already registered"
             )
         
         # Validate password byte length before hashing (extra safety check)
@@ -80,7 +91,8 @@ async def register(
         hashed_password = get_password_hash(user_data.password)
         new_user = User(
             username=user_data.username,
-            hashed_password=hashed_password
+            hashed_password=hashed_password,
+            email=user_data.email,
         )
         
         db.add(new_user)
@@ -96,3 +108,45 @@ async def register(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error creating user: {str(e)}"
         )
+
+
+@router.post("/forgot-password", status_code=status.HTTP_200_OK)
+async def forgot_password(
+    request: ForgotPasswordRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Send a password reset email. Always returns 200 to avoid leaking whether an email is registered.
+    """
+    user = db.query(User).filter(User.email == request.email).first()
+    if user:
+        reset_token = create_password_reset_token(user.id)
+        send_password_reset_email(to_email=user.email, reset_token=reset_token)
+    return {"message": "If that email is registered, a reset link has been sent."}
+
+
+@router.post("/reset-password", status_code=status.HTTP_200_OK)
+async def reset_password(
+    request: ResetPasswordRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Reset password using a valid reset token.
+    """
+    user_id = verify_password_reset_token(request.token)
+    if user_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired reset token."
+        )
+
+    user = db.query(User).filter(User.id == user_id).first()
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User not found."
+        )
+
+    user.hashed_password = get_password_hash(request.new_password)
+    db.commit()
+    return {"message": "Password reset successfully."}

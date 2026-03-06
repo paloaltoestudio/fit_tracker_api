@@ -85,3 +85,22 @@ def get_current_user_id(token: str) -> Optional[int]:
     if payload is None:
         return None
     return payload.get("user_id")
+
+
+PASSWORD_RESET_TOKEN_EXPIRE_MINUTES = 15
+
+
+def create_password_reset_token(user_id: int) -> str:
+    """Create a short-lived JWT for password reset"""
+    data = {"user_id": user_id, "type": "password_reset"}
+    return create_access_token(data=data, expires_delta=timedelta(minutes=PASSWORD_RESET_TOKEN_EXPIRE_MINUTES))
+
+
+def verify_password_reset_token(token: str) -> Optional[int]:
+    """Verify reset token and return user_id, or None if invalid/expired"""
+    payload = verify_token(token)
+    if payload is None:
+        return None
+    if payload.get("type") != "password_reset":
+        return None
+    return payload.get("user_id")

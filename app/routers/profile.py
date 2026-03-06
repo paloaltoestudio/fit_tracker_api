@@ -46,6 +46,7 @@ async def get_profile(
     return ProfileResponse(
         id=current_user.id,
         username=current_user.username,
+        email=current_user.email,
         first_name=current_user.first_name,
         last_name=current_user.last_name,
         age=current_user.age,
@@ -78,13 +79,20 @@ async def update_profile(
     
     if profile_data.gender is not None:
         current_user.gender = profile_data.gender
-    
+
+    if profile_data.email is not None:
+        existing = db.query(User).filter(User.email == profile_data.email, User.id != current_user.id).first()
+        if existing:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already in use.")
+        current_user.email = profile_data.email
+
     db.commit()
     db.refresh(current_user)
     
     return ProfileResponse(
         id=current_user.id,
         username=current_user.username,
+        email=current_user.email,
         first_name=current_user.first_name,
         last_name=current_user.last_name,
         age=current_user.age,

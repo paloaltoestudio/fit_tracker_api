@@ -8,11 +8,18 @@ class Settings(BaseSettings):
         "DATABASE_URL",
         "sqlite:///./fit_tracker.db"
     )
-    
+
     # JWT
     secret_key: str = os.getenv("SECRET_KEY", "your-secret-key-change-this-in-production")
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
+
+    # Gmail SMTP
+    gmail_user: str = os.getenv("GMAIL_USER", "")
+    gmail_app_password: str = os.getenv("GMAIL_APP_PASSWORD", "")
+
+    # Frontend URL (used in password reset links)
+    frontend_url: str = os.getenv("FRONTEND_URL", "http://localhost:3000")
     
     class Config:
         env_file = ".env"

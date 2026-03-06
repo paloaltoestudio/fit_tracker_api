@@ -3,12 +3,12 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
 
-# Get database URL from environment (Render provides DATABASE_URL)
+# Get database URL from environment variable (set to Neon PostgreSQL URL in production)
 # For SQLite (local dev), use the default
 database_url = os.getenv("DATABASE_URL", "sqlite:///./fit_tracker.db")
 
-# Render's PostgreSQL URLs use postgres:// but SQLAlchemy needs postgresql://
-# Also use psycopg (v3) instead of psycopg2 for better Python 3.13 support
+# Neon PostgreSQL URLs use postgresql:// but SQLAlchemy needs the psycopg driver specified
+# Also handles legacy postgres:// URLs
 if database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql+psycopg://", 1)
 elif database_url.startswith("postgresql://") and "+" not in database_url:
@@ -21,7 +21,7 @@ if database_url.startswith("sqlite"):
         database_url, connect_args={"check_same_thread": False}
     )
 else:
-    # PostgreSQL (for production on Render)
+    # PostgreSQL (Neon in production, deployed on Render)
     engine = create_engine(database_url)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

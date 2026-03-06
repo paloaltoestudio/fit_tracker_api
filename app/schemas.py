@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator, EmailStr
 from typing import Optional, Literal, Any
 
 
@@ -15,7 +15,8 @@ class Token(BaseModel):
 class UserCreate(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
     password: str = Field(..., min_length=6, max_length=72)
-    
+    email: EmailStr
+
     @field_validator('password')
     @classmethod
     def validate_password_length(cls, v: str) -> str:
@@ -28,6 +29,7 @@ class UserCreate(BaseModel):
 class UserResponse(BaseModel):
     id: int
     username: str
+    email: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -36,6 +38,7 @@ class UserResponse(BaseModel):
 class ProfileResponse(BaseModel):
     id: int
     username: str
+    email: Optional[str] = None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     age: Optional[int] = None
@@ -52,6 +55,23 @@ class ProfileUpdate(BaseModel):
     age: Optional[int] = Field(None, ge=1, le=150)
     height_cm: Optional[float] = Field(None, gt=0, le=300, description="Height in cm")
     gender: Optional[Literal["Male", "Female"]] = None
+    email: Optional[EmailStr] = None
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str = Field(..., min_length=6, max_length=72)
+
+    @field_validator('new_password')
+    @classmethod
+    def validate_password_length(cls, v: str) -> str:
+        if len(v.encode('utf-8')) > 72:
+            raise ValueError('Password cannot exceed 72 bytes. Please use a shorter password.')
+        return v
 
 
 class WeightCreate(BaseModel):
