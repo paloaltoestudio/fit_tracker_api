@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from app.database import engine, Base
 from app.models import User, Weight, MetricEntry  # Import models so tables are created
-from app.routers import auth, weights, profile, metrics
+from app.routers import auth, weights, profile, metrics, admin
 
 # Create database tables (must import models first)
 Base.metadata.create_all(bind=engine)
@@ -24,6 +24,7 @@ app.include_router(auth.router, prefix="/api/v1", tags=["authentication"])
 app.include_router(weights.router, prefix="/api/v1", tags=["weights"])
 app.include_router(profile.router, prefix="/api/v1", tags=["profile"])
 app.include_router(metrics.router, prefix="/api/v1", tags=["metrics"])
+app.include_router(admin.router, prefix="/api/v1", tags=["admin"])
 
 
 @app.get("/")

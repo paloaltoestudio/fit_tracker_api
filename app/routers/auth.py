@@ -14,6 +14,7 @@ from app.auth import (
     verify_password_reset_token,
 )
 from app.email import send_password_reset_email
+from app.config import settings
 
 router = APIRouter()
 
@@ -63,6 +64,14 @@ async def register(
     Register a new user (useful for development)
     """
     try:
+        # Validate registration code if one is configured
+        if settings.registration_code:
+            if user_data.registration_code != settings.registration_code:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Invalid registration code."
+                )
+
         # Check if username already exists
         existing_user = db.query(User).filter(User.username == user_data.username).first()
         if existing_user:

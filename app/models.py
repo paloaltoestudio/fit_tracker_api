@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Float, ForeignKey, Date, JSON, UniqueConstraint
+from sqlalchemy import Column, Integer, String, DateTime, Float, ForeignKey, Date, JSON, UniqueConstraint, Boolean
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from app.database import Base
@@ -11,7 +11,8 @@ class User(Base):
     username = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     email = Column(String, unique=True, index=True, nullable=True)
-    
+    is_admin = Column(Boolean, default=False, nullable=False, server_default="false")
+
     # Profile fields
     first_name = Column(String, nullable=True)
     last_name = Column(String, nullable=True)

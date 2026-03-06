@@ -20,6 +20,9 @@ class Settings(BaseSettings):
 
     # Frontend URL (used in password reset links)
     frontend_url: str = os.getenv("FRONTEND_URL", "http://localhost:3000")
+
+    # Registration protection (if set, required in POST /register)
+    registration_code: str = os.getenv("REGISTRATION_CODE", "")
     
     class Config:
         env_file = ".env"

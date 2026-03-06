@@ -16,6 +16,7 @@ class UserCreate(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
     password: str = Field(..., min_length=6, max_length=72)
     email: EmailStr
+    registration_code: Optional[str] = None
 
     @field_validator('password')
     @classmethod
@@ -56,6 +57,21 @@ class ProfileUpdate(BaseModel):
     height_cm: Optional[float] = Field(None, gt=0, le=300, description="Height in cm")
     gender: Optional[Literal["Male", "Female"]] = None
     email: Optional[EmailStr] = None
+
+
+class AdminUserResponse(BaseModel):
+    id: int
+    username: str
+    email: Optional[str] = None
+    is_admin: bool
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    age: Optional[int] = None
+    height_cm: Optional[float] = None
+    gender: Optional[str] = None
+
+    class Config:
+        from_attributes = True
 
 
 class ForgotPasswordRequest(BaseModel):
