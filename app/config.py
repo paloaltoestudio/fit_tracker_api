@@ -14,9 +14,9 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
 
-    # Gmail SMTP
-    gmail_user: str = os.getenv("GMAIL_USER", "")
-    gmail_app_password: str = os.getenv("GMAIL_APP_PASSWORD", "")
+    # Resend email API
+    resend_api_key: str = os.getenv("RESEND_API_KEY", "")
+    email_from: str = os.getenv("EMAIL_FROM", "noreply@yourdomain.com")
 
     # Frontend URL (used in password reset links)
     frontend_url: str = os.getenv("FRONTEND_URL", "http://localhost:3000")
