@@ -22,7 +22,8 @@ if database_url.startswith("sqlite"):
     )
 else:
     # PostgreSQL (Neon in production, deployed on Render)
-    engine = create_engine(database_url)
+    # pool_pre_ping checks the connection before use — required for Neon which closes idle connections
+    engine = create_engine(database_url, pool_pre_ping=True, pool_recycle=300)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
