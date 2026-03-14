@@ -2,12 +2,19 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_redoc_html
 from fastapi.responses import HTMLResponse
-from app.database import engine, Base
+from app.database import engine, Base, SessionLocal
 from app.models import User, Weight, MetricEntry  # Import models so tables are created
-from app.routers import auth, weights, profile, metrics, admin
+from app.routers import auth, weights, profile, metrics, admin, plans
+from app.seed_exercises import seed_global_exercises
 
 # Create database tables (must import models first)
 Base.metadata.create_all(bind=engine)
+# Seed global exercises if table is empty
+db = SessionLocal()
+try:
+    seed_global_exercises(db)
+finally:
+    db.close()
 
 app = FastAPI(
     title="Fit Tracker API",
@@ -32,6 +39,7 @@ app.include_router(weights.router, prefix="/api/v1", tags=["weights"])
 app.include_router(profile.router, prefix="/api/v1", tags=["profile"])
 app.include_router(metrics.router, prefix="/api/v1", tags=["metrics"])
 app.include_router(admin.router, prefix="/api/v1", tags=["admin"])
+app.include_router(plans.router, prefix="/api/v1", tags=["plans"])
 
 
 @app.get("/redoc", include_in_schema=False)

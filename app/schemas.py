@@ -217,3 +217,160 @@ class MetricResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# --- Workout Plans & Exercises ---
+
+MUSCLE_GROUPS = (
+    "chest", "back", "shoulders", "biceps", "triceps", "forearms", "abs",
+    "glutes", "quads", "hamstrings", "calves", "full_body", "cardio", "other",
+)
+EQUIPMENT_TYPES = (
+    "barbell", "dumbbell", "machine", "cable", "bodyweight", "bands",
+    "kettlebell", "other",
+)
+DURATION_UNITS = ("days", "weeks", "months")
+
+
+class ExerciseCreate(BaseModel):
+    name: str = Field(..., min_length=1)
+    description: Optional[str] = None
+    muscle_group: Optional[str] = None
+    equipment: Optional[str] = None
+
+
+class ExerciseUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=1)
+    description: Optional[str] = None
+    muscle_group: Optional[str] = None
+    equipment: Optional[str] = None
+
+
+class ExerciseResponse(BaseModel):
+    id: int
+    name: str
+    description: Optional[str] = None
+    muscle_group: Optional[str] = None
+    equipment: Optional[str] = None
+    owner_id: Optional[int] = None
+    is_global: bool = False
+    created_at: str
+
+    class Config:
+        from_attributes = True
+
+    @model_validator(mode="wrap")
+    @classmethod
+    def set_is_global(cls, data, handler):
+        obj = handler(data)
+        if hasattr(data, "owner_id"):
+            object.__setattr__(obj, "is_global", data.owner_id is None)
+        return obj
+
+
+class WorkoutPlanCreate(BaseModel):
+    name: str = Field(..., min_length=1)
+    description: Optional[str] = None
+    duration_value: int = Field(..., ge=1)
+    duration_unit: Literal["days", "weeks", "months"]
+
+
+class WorkoutPlanSummary(BaseModel):
+    id: int
+    user_id: int
+    name: str
+    description: Optional[str] = None
+    duration_value: int
+    duration_unit: str
+    start_date: Optional[str] = None
+    is_active: bool
+    created_at: str
+    updated_at: Optional[str] = None
+    day_count: int = 0
+
+    class Config:
+        from_attributes = True
+
+
+class WorkoutPlanDayCreate(BaseModel):
+    day_number: int = Field(..., ge=1)
+    name: Optional[str] = None
+    is_rest_day: bool = False
+    notes: Optional[str] = None
+
+
+class WorkoutPlanDayUpdate(BaseModel):
+    day_number: Optional[int] = Field(None, ge=1)
+    name: Optional[str] = None
+    is_rest_day: Optional[bool] = None
+    notes: Optional[str] = None
+
+
+class WorkoutPlanExerciseResponse(BaseModel):
+    id: int
+    plan_day_id: int
+    exercise_id: int
+    exercise: "ExerciseResponse"
+    order: int
+    sets: Optional[int] = None
+    reps: Optional[int] = None
+    weight_kg: Optional[float] = None
+    rest_seconds: Optional[int] = None
+    notes: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class WorkoutPlanDayResponse(BaseModel):
+    id: int
+    plan_id: int
+    day_number: int
+    name: Optional[str] = None
+    is_rest_day: bool
+    notes: Optional[str] = None
+    exercises: list[WorkoutPlanExerciseResponse] = []
+
+    class Config:
+        from_attributes = True
+
+
+class WorkoutPlanResponse(BaseModel):
+    id: int
+    user_id: int
+    name: str
+    description: Optional[str] = None
+    duration_value: int
+    duration_unit: str
+    start_date: Optional[str] = None
+    is_active: bool
+    created_at: str
+    updated_at: Optional[str] = None
+    days: list[WorkoutPlanDayResponse] = []
+
+    class Config:
+        from_attributes = True
+
+
+class WorkoutPlanExerciseCreate(BaseModel):
+    exercise_id: int
+    order: int = 1
+    sets: Optional[int] = None
+    reps: Optional[int] = None
+    weight_kg: Optional[float] = None
+    rest_seconds: Optional[int] = None
+    notes: Optional[str] = None
+
+
+class WorkoutPlanExerciseUpdate(BaseModel):
+    exercise_id: Optional[int] = None
+    order: Optional[int] = None
+    sets: Optional[int] = None
+    reps: Optional[int] = None
+    weight_kg: Optional[float] = None
+    rest_seconds: Optional[int] = None
+    notes: Optional[str] = None
+
+
+# Resolve forward reference
+WorkoutPlanExerciseResponse.model_rebuild()

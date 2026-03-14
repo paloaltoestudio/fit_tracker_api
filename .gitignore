@@ -28,3 +28,8 @@ Thumbs.db
 # Environment variables
 .env
 .env.local
+.env.*.local
+
+# Local / secret config (may contain DB URLs, API keys)
+.claude/settings.local.json
+*.local.json
