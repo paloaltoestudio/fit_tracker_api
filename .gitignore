@@ -25,6 +25,9 @@ ENV/
 .DS_Store
 Thumbs.db
 
+# Documentation (local / generated)
+docs/
+
 # Environment variables
 .env
 .env.local
