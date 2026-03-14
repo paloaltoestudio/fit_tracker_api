@@ -121,10 +121,8 @@ BODY_MEASUREMENT_SITES = (
     "neck_cm",
     "shoulder_cm",
     "chest_cm",
-    "biceps_left_cm",
-    "biceps_right_cm",
-    "triceps_left_cm",
-    "triceps_right_cm",
+    "arm_left_cm",
+    "arm_right_cm",
     "forearm_left_cm",
     "forearm_right_cm",
     "waist_cm",
@@ -159,10 +157,8 @@ class BodyMeasurementsValue(BaseModel):
     abdomen_cm: Optional[float] = Field(None, gt=0, le=250, description="Abdomen at navel level (cm)")
     hips_cm: Optional[float] = Field(None, gt=0, le=250, description="Hips, maximal buttocks (cm)")
     # Left/right (bilateral)
-    biceps_left_cm: Optional[float] = Field(None, gt=0, le=250, description="Biceps left (cm)")
-    biceps_right_cm: Optional[float] = Field(None, gt=0, le=250, description="Biceps right (cm)")
-    triceps_left_cm: Optional[float] = Field(None, gt=0, le=250, description="Triceps left (cm)")
-    triceps_right_cm: Optional[float] = Field(None, gt=0, le=250, description="Triceps right (cm)")
+    arm_left_cm: Optional[float] = Field(None, gt=0, le=250, description="Upper arm left (cm)")
+    arm_right_cm: Optional[float] = Field(None, gt=0, le=250, description="Upper arm right (cm)")
     forearm_left_cm: Optional[float] = Field(None, gt=0, le=250, description="Forearm left (cm)")
     forearm_right_cm: Optional[float] = Field(None, gt=0, le=250, description="Forearm right (cm)")
     thigh_left_cm: Optional[float] = Field(None, gt=0, le=250, description="Thigh left (cm)")
@@ -197,7 +193,7 @@ class MetricCreate(BaseModel):
     date: str = Field(..., description="Date in YYYY-MM-DD format")
     value: dict = Field(
         ...,
-        description="Metric value. weight: {kg}. muscle_index: {index}. body_measurements: single (neck_cm?, shoulder_cm?, chest_cm?, waist_cm?, abdomen_cm?, hips_cm?) and bilateral (biceps_left_cm?, biceps_right_cm?, triceps_left_cm?, triceps_right_cm?, forearm_left_cm?, forearm_right_cm?, thigh_left_cm?, thigh_right_cm?, calf_left_cm?, calf_right_cm?) in cm, at least one.",
+        description="Metric value. weight: {kg}. muscle_index: {index}. body_measurements: single (neck_cm?, shoulder_cm?, chest_cm?, waist_cm?, abdomen_cm?, hips_cm?) and bilateral (arm_left_cm?, arm_right_cm?, forearm_left_cm?, forearm_right_cm?, thigh_left_cm?, thigh_right_cm?, calf_left_cm?, calf_right_cm?) in cm, at least one.",
     )
 
     @model_validator(mode="after")
