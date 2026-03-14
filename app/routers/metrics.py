@@ -74,8 +74,9 @@ async def create_metric(
     """
     Create or update a metric entry. One entry per (user, metric_type, date).
     For weight: value = {"kg": 55}. For muscle_index: value = {"index": 10}.
-    For body_measurements: value = { neck_cm?, shoulder_cm?, chest_cm?, biceps_cm?, triceps_cm?,
-    forearm_cm?, waist_cm?, abdomen_cm?, hips_cm?, thigh_cm?, calf_cm? } (all in cm, at least one).
+    For body_measurements: single (neck_cm?, shoulder_cm?, chest_cm?, waist_cm?, abdomen_cm?, hips_cm?)
+    and bilateral (biceps_left_cm?, biceps_right_cm?, triceps_left_cm?, triceps_right_cm?,
+    forearm_left_cm?, forearm_right_cm?, thigh_left_cm?, thigh_right_cm?, calf_left_cm?, calf_right_cm?) in cm, at least one.
     """
     try:
         metric_date = datetime.strptime(data.date, "%Y-%m-%d").date()

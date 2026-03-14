@@ -116,18 +116,24 @@ class WeightResponse(BaseModel):
 METRIC_TYPES = ("weight", "muscle_index", "body_measurements")
 
 # Standard body circumference sites (fitness/ACE-style). All values in cm.
+# Bilateral parts have _left_cm and _right_cm.
 BODY_MEASUREMENT_SITES = (
     "neck_cm",
     "shoulder_cm",
     "chest_cm",
-    "biceps_cm",
-    "triceps_cm",
-    "forearm_cm",
+    "biceps_left_cm",
+    "biceps_right_cm",
+    "triceps_left_cm",
+    "triceps_right_cm",
+    "forearm_left_cm",
+    "forearm_right_cm",
     "waist_cm",
     "abdomen_cm",
     "hips_cm",
-    "thigh_cm",
-    "calf_cm",
+    "thigh_left_cm",
+    "thigh_right_cm",
+    "calf_left_cm",
+    "calf_right_cm",
 )
 
 # Value schemas per metric type (for validation)
@@ -140,21 +146,29 @@ class MuscleIndexValue(BaseModel):
 
 
 class BodyMeasurementsValue(BaseModel):
-    """Body circumference measurements in cm. All fields optional; send only what you measured."""
+    """Body circumference measurements in cm. All fields optional; send only what you measured.
+    Bilateral parts (arms, legs) use _left_cm and _right_cm."""
 
     model_config = {"extra": "forbid"}
 
+    # Single (midline / full circumference)
     neck_cm: Optional[float] = Field(None, gt=0, le=250, description="Neck circumference (cm)")
     shoulder_cm: Optional[float] = Field(None, gt=0, le=250, description="Shoulder circumference (cm)")
     chest_cm: Optional[float] = Field(None, gt=0, le=250, description="Chest at nipple level (cm)")
-    biceps_cm: Optional[float] = Field(None, gt=0, le=250, description="Biceps/upper arm (cm)")
-    triceps_cm: Optional[float] = Field(None, gt=0, le=250, description="Triceps/back of upper arm (cm)")
-    forearm_cm: Optional[float] = Field(None, gt=0, le=250, description="Forearm max girth (cm)")
     waist_cm: Optional[float] = Field(None, gt=0, le=250, description="Waist, narrowest above navel (cm)")
     abdomen_cm: Optional[float] = Field(None, gt=0, le=250, description="Abdomen at navel level (cm)")
     hips_cm: Optional[float] = Field(None, gt=0, le=250, description="Hips, maximal buttocks (cm)")
-    thigh_cm: Optional[float] = Field(None, gt=0, le=250, description="Thigh, mid between groin and knee (cm)")
-    calf_cm: Optional[float] = Field(None, gt=0, le=250, description="Calf, max girth (cm)")
+    # Left/right (bilateral)
+    biceps_left_cm: Optional[float] = Field(None, gt=0, le=250, description="Biceps left (cm)")
+    biceps_right_cm: Optional[float] = Field(None, gt=0, le=250, description="Biceps right (cm)")
+    triceps_left_cm: Optional[float] = Field(None, gt=0, le=250, description="Triceps left (cm)")
+    triceps_right_cm: Optional[float] = Field(None, gt=0, le=250, description="Triceps right (cm)")
+    forearm_left_cm: Optional[float] = Field(None, gt=0, le=250, description="Forearm left (cm)")
+    forearm_right_cm: Optional[float] = Field(None, gt=0, le=250, description="Forearm right (cm)")
+    thigh_left_cm: Optional[float] = Field(None, gt=0, le=250, description="Thigh left (cm)")
+    thigh_right_cm: Optional[float] = Field(None, gt=0, le=250, description="Thigh right (cm)")
+    calf_left_cm: Optional[float] = Field(None, gt=0, le=250, description="Calf left (cm)")
+    calf_right_cm: Optional[float] = Field(None, gt=0, le=250, description="Calf right (cm)")
 
     @model_validator(mode="after")
     def at_least_one_measurement(self):
@@ -183,7 +197,7 @@ class MetricCreate(BaseModel):
     date: str = Field(..., description="Date in YYYY-MM-DD format")
     value: dict = Field(
         ...,
-        description="Metric value. weight: {kg}. muscle_index: {index}. body_measurements: {neck_cm?, shoulder_cm?, chest_cm?, biceps_cm?, triceps_cm?, forearm_cm?, waist_cm?, abdomen_cm?, hips_cm?, thigh_cm?, calf_cm?} (cm, at least one).",
+        description="Metric value. weight: {kg}. muscle_index: {index}. body_measurements: single (neck_cm?, shoulder_cm?, chest_cm?, waist_cm?, abdomen_cm?, hips_cm?) and bilateral (biceps_left_cm?, biceps_right_cm?, triceps_left_cm?, triceps_right_cm?, forearm_left_cm?, forearm_right_cm?, thigh_left_cm?, thigh_right_cm?, calf_left_cm?, calf_right_cm?) in cm, at least one.",
     )
 
     @model_validator(mode="after")
