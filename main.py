@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.docs import get_redoc_html
 from fastapi.responses import HTMLResponse
 from app.database import engine, Base
 from app.models import User, Weight, MetricEntry  # Import models so tables are created
@@ -8,7 +9,13 @@ from app.routers import auth, weights, profile, metrics, admin
 # Create database tables (must import models first)
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Fit Tracker API", version="1.0.0")
+app = FastAPI(
+    title="Fit Tracker API",
+    version="1.0.0",
+    description="REST API for fitness tracking: weight, body measurements, and metrics.",
+    docs_url="/docs",
+    redoc_url=None,  # We serve ReDoc via custom route below for reliable CDN/loading
+)
 
 # Configure CORS
 app.add_middleware(
@@ -25,6 +32,18 @@ app.include_router(weights.router, prefix="/api/v1", tags=["weights"])
 app.include_router(profile.router, prefix="/api/v1", tags=["profile"])
 app.include_router(metrics.router, prefix="/api/v1", tags=["metrics"])
 app.include_router(admin.router, prefix="/api/v1", tags=["admin"])
+
+
+@app.get("/redoc", include_in_schema=False)
+async def redoc_docs():
+    """ReDoc documentation (OpenAPI). Uses jsDelivr CDN for the ReDoc bundle."""
+    return get_redoc_html(
+        openapi_url="/openapi.json",
+        title=f"{app.title} - ReDoc",
+        redoc_js_url="https://cdn.jsdelivr.net/npm/redoc@2.3.0/bundles/redoc.standalone.js",
+        redoc_favicon_url="https://fastapi.tiangolo.com/img/favicon.png",
+        with_google_fonts=True,
+    )
 
 
 @app.get("/")

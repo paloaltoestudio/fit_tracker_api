@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, field_validator, model_validator, EmailStr
-from typing import Optional, Literal, Any
+from typing import Optional, Literal
 
 
 class UserLogin(BaseModel):
@@ -113,7 +113,22 @@ class WeightResponse(BaseModel):
 
 # --- Metrics (flexible per metric_type) ---
 
-METRIC_TYPES = ("weight", "muscle_index")
+METRIC_TYPES = ("weight", "muscle_index", "body_measurements")
+
+# Standard body circumference sites (fitness/ACE-style). All values in cm.
+BODY_MEASUREMENT_SITES = (
+    "neck_cm",
+    "shoulder_cm",
+    "chest_cm",
+    "biceps_cm",
+    "triceps_cm",
+    "forearm_cm",
+    "waist_cm",
+    "abdomen_cm",
+    "hips_cm",
+    "thigh_cm",
+    "calf_cm",
+)
 
 # Value schemas per metric type (for validation)
 class WeightValue(BaseModel):
@@ -124,6 +139,30 @@ class MuscleIndexValue(BaseModel):
     index: float = Field(..., ge=0, le=100, description="Muscle index (0-100)")
 
 
+class BodyMeasurementsValue(BaseModel):
+    """Body circumference measurements in cm. All fields optional; send only what you measured."""
+
+    model_config = {"extra": "forbid"}
+
+    neck_cm: Optional[float] = Field(None, gt=0, le=250, description="Neck circumference (cm)")
+    shoulder_cm: Optional[float] = Field(None, gt=0, le=250, description="Shoulder circumference (cm)")
+    chest_cm: Optional[float] = Field(None, gt=0, le=250, description="Chest at nipple level (cm)")
+    biceps_cm: Optional[float] = Field(None, gt=0, le=250, description="Biceps/upper arm (cm)")
+    triceps_cm: Optional[float] = Field(None, gt=0, le=250, description="Triceps/back of upper arm (cm)")
+    forearm_cm: Optional[float] = Field(None, gt=0, le=250, description="Forearm max girth (cm)")
+    waist_cm: Optional[float] = Field(None, gt=0, le=250, description="Waist, narrowest above navel (cm)")
+    abdomen_cm: Optional[float] = Field(None, gt=0, le=250, description="Abdomen at navel level (cm)")
+    hips_cm: Optional[float] = Field(None, gt=0, le=250, description="Hips, maximal buttocks (cm)")
+    thigh_cm: Optional[float] = Field(None, gt=0, le=250, description="Thigh, mid between groin and knee (cm)")
+    calf_cm: Optional[float] = Field(None, gt=0, le=250, description="Calf, max girth (cm)")
+
+    @model_validator(mode="after")
+    def at_least_one_measurement(self):
+        if all(v is None for v in self.model_dump().values()):
+            raise ValueError("At least one body measurement (in cm) is required")
+        return self
+
+
 def validate_metric_value(metric_type: str, value: dict) -> dict:
     """Validate value structure based on metric_type."""
     if metric_type == "weight":
@@ -132,13 +171,20 @@ def validate_metric_value(metric_type: str, value: dict) -> dict:
     if metric_type == "muscle_index":
         v = MuscleIndexValue.model_validate(value)
         return v.model_dump()
+    if metric_type == "body_measurements":
+        v = BodyMeasurementsValue.model_validate(value)
+        # Return only non-None fields so we don't store nulls
+        return {k: w for k, w in v.model_dump().items() if w is not None}
     raise ValueError(f"Unknown metric_type: '{metric_type}'. Allowed: {list(METRIC_TYPES)}")
 
 
 class MetricCreate(BaseModel):
-    metric_type: Literal["weight", "muscle_index"]
+    metric_type: Literal["weight", "muscle_index", "body_measurements"]
     date: str = Field(..., description="Date in YYYY-MM-DD format")
-    value: dict = Field(..., description="Metric value. For weight: {kg: number}. For muscle_index: {index: number}")
+    value: dict = Field(
+        ...,
+        description="Metric value. weight: {kg}. muscle_index: {index}. body_measurements: {neck_cm?, shoulder_cm?, chest_cm?, biceps_cm?, triceps_cm?, forearm_cm?, waist_cm?, abdomen_cm?, hips_cm?, thigh_cm?, calf_cm?} (cm, at least one).",
+    )
 
     @model_validator(mode="after")
     def validate_value_for_type(self):
