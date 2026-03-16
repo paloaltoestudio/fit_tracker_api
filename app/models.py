@@ -51,6 +51,7 @@ class MetricEntry(Base):
     metric_type = Column(String, nullable=False, index=True)  # "weight", "muscle_index", etc.
     date = Column(Date, nullable=False, index=True)
     value = Column(JSON, nullable=False)  # Flexible payload per metric type
+    source = Column(String, nullable=True)  # "device" | "calculated"
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationship to user

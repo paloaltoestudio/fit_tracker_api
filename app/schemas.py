@@ -195,6 +195,9 @@ class MetricCreate(BaseModel):
         ...,
         description="Metric value. weight: {kg}. muscle_index: {index}. body_measurements: single (neck_cm?, shoulder_cm?, chest_cm?, waist_cm?, abdomen_cm?, hips_cm?) and bilateral (arm_left_cm?, arm_right_cm?, forearm_left_cm?, forearm_right_cm?, thigh_left_cm?, thigh_right_cm?, calf_left_cm?, calf_right_cm?) in cm, at least one.",
     )
+    source: Optional[Literal["device", "calculated"]] = Field(
+        "calculated", description="Origin of the metric: 'device' (measured by hardware) or 'calculated' (derived by the app)"
+    )
 
     @model_validator(mode="after")
     def validate_value_for_type(self):
@@ -205,6 +208,7 @@ class MetricCreate(BaseModel):
 class MetricUpdate(BaseModel):
     date: Optional[str] = Field(None, description="Date in YYYY-MM-DD format")
     value: Optional[dict] = Field(None, description="Metric value")
+    source: Optional[Literal["device", "calculated"]] = Field(None, description="Origin of the metric")
 
 
 class MetricResponse(BaseModel):
@@ -213,6 +217,7 @@ class MetricResponse(BaseModel):
     metric_type: str
     date: str
     value: dict
+    source: Optional[str] = None
     created_at: str
 
     class Config:

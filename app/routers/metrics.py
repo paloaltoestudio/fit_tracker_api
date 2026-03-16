@@ -61,6 +61,7 @@ def _metric_to_response(entry: MetricEntry) -> MetricResponse:
         metric_type=entry.metric_type,
         date=entry.date.isoformat(),
         value=entry.value,
+        source=entry.source,
         created_at=entry.created_at.isoformat(),
     )
 
@@ -98,6 +99,7 @@ async def create_metric(
 
     if existing:
         existing.value = data.value
+        existing.source = data.source
         db.commit()
         db.refresh(existing)
         return _metric_to_response(existing)
@@ -107,6 +109,7 @@ async def create_metric(
         metric_type=data.metric_type,
         date=metric_date,
         value=data.value,
+        source=data.source,
     )
     db.add(entry)
     db.commit()
@@ -178,6 +181,9 @@ async def update_metric(
             entry.value = validate_metric_value(entry.metric_type, merged)
         else:
             entry.value = validate_metric_value(entry.metric_type, data.value)
+
+    if data.source is not None:
+        entry.source = data.source
 
     if data.date is not None:
         try:
