@@ -130,5 +130,10 @@ class WorkoutPlanExercise(Base):
     rest_seconds = Column(Integer, nullable=True)
     notes = Column(String, nullable=True)
 
+    # Per-set override: list of {reps?, weight_kg?} dicts, one per set.
+    # When present, len(set_configs) is the effective set count and
+    # the top-level `sets`/`reps`/`weight_kg` fields act as defaults/display hints.
+    set_configs = Column(JSON, nullable=True)
+
     plan_day = relationship("WorkoutPlanDay", back_populates="exercises")
     exercise = relationship("Exercise", backref="plan_entries")

@@ -108,6 +108,7 @@ def _to_plan_response(plan: WorkoutPlan) -> WorkoutPlanResponse:
                 weight_kg=pe.weight_kg,
                 rest_seconds=pe.rest_seconds,
                 notes=pe.notes,
+                set_configs=pe.set_configs,
             )
             for pe in d.exercises
         ]
@@ -150,6 +151,7 @@ def _to_day_response(day: WorkoutPlanDay) -> WorkoutPlanDayResponse:
             weight_kg=pe.weight_kg,
             rest_seconds=pe.rest_seconds,
             notes=pe.notes,
+            set_configs=pe.set_configs,
         )
         for pe in day.exercises
     ]
@@ -474,6 +476,7 @@ def add_plan_day_exercise(
         weight_kg=data.weight_kg,
         rest_seconds=data.rest_seconds,
         notes=data.notes,
+        set_configs=[s.model_dump(exclude_none=True) for s in data.set_configs] if data.set_configs is not None else None,
     )
     db.add(entry)
     db.commit()
@@ -489,6 +492,7 @@ def add_plan_day_exercise(
         weight_kg=entry.weight_kg,
         rest_seconds=entry.rest_seconds,
         notes=entry.notes,
+        set_configs=entry.set_configs,
     )
 
 
@@ -521,6 +525,8 @@ def update_plan_day_exercise(
         entry.rest_seconds = data.rest_seconds
     if data.notes is not None:
         entry.notes = data.notes
+    if data.set_configs is not None:
+        entry.set_configs = [s.model_dump(exclude_none=True) for s in data.set_configs]
     db.commit()
     db.refresh(entry)
     return WorkoutPlanExerciseResponse(
@@ -534,6 +540,7 @@ def update_plan_day_exercise(
         weight_kg=entry.weight_kg,
         rest_seconds=entry.rest_seconds,
         notes=entry.notes,
+        set_configs=entry.set_configs,
     )
 
 

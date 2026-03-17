@@ -311,6 +311,12 @@ class WorkoutPlanDayUpdate(BaseModel):
     notes: Optional[str] = None
 
 
+class SetConfig(BaseModel):
+    """Per-set overrides. Both fields optional — supply only what you track."""
+    reps: Optional[int] = Field(None, ge=1)
+    weight_kg: Optional[float] = Field(None, gt=0)
+
+
 class WorkoutPlanExerciseResponse(BaseModel):
     id: int
     plan_day_id: int
@@ -322,6 +328,7 @@ class WorkoutPlanExerciseResponse(BaseModel):
     weight_kg: Optional[float] = None
     rest_seconds: Optional[int] = None
     notes: Optional[str] = None
+    set_configs: Optional[list[SetConfig]] = None
 
     class Config:
         from_attributes = True
@@ -365,6 +372,14 @@ class WorkoutPlanExerciseCreate(BaseModel):
     weight_kg: Optional[float] = None
     rest_seconds: Optional[int] = None
     notes: Optional[str] = None
+    set_configs: Optional[list[SetConfig]] = Field(
+        None,
+        description=(
+            "Per-set overrides. When provided, len(set_configs) is the effective set count. "
+            "Example (4 sets, each different): [{\"reps\":10,\"weight_kg\":20},{\"reps\":8,\"weight_kg\":22.5},...]. "
+            "When null, top-level sets/reps/weight_kg apply uniformly to all sets."
+        ),
+    )
 
 
 class WorkoutPlanExerciseUpdate(BaseModel):
@@ -375,6 +390,7 @@ class WorkoutPlanExerciseUpdate(BaseModel):
     weight_kg: Optional[float] = None
     rest_seconds: Optional[int] = None
     notes: Optional[str] = None
+    set_configs: Optional[list[SetConfig]] = None
 
 
 # Resolve forward reference
