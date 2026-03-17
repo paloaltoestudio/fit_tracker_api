@@ -4,7 +4,7 @@ from fastapi.openapi.docs import get_redoc_html
 from fastapi.responses import HTMLResponse
 from app.database import engine, Base, SessionLocal
 from app.models import User, Weight, MetricEntry  # Import models so tables are created
-from app.routers import auth, weights, profile, metrics, admin, plans
+from app.routers import auth, weights, profile, metrics, admin, plans, goals
 from app.seed_exercises import seed_global_exercises
 
 # Create database tables (must import models first)
@@ -40,6 +40,7 @@ app.include_router(profile.router, prefix="/api/v1", tags=["profile"])
 app.include_router(metrics.router, prefix="/api/v1", tags=["metrics"])
 app.include_router(admin.router, prefix="/api/v1", tags=["admin"])
 app.include_router(plans.router, prefix="/api/v1", tags=["plans"])
+app.include_router(goals.router, prefix="/api/v1", tags=["goals"])
 
 
 @app.get("/redoc", include_in_schema=False)

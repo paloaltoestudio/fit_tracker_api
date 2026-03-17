@@ -137,3 +137,18 @@ class WorkoutPlanExercise(Base):
 
     plan_day = relationship("WorkoutPlanDay", back_populates="exercises")
     exercise = relationship("Exercise", backref="plan_entries")
+
+
+class Goal(Base):
+    __tablename__ = "goals"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    title = Column(String, nullable=False)
+    description = Column(String, nullable=True)
+    target_date = Column(Date, nullable=True)
+    is_achieved = Column(Boolean, default=False, nullable=False, server_default="false")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    user = relationship("User", backref="goals")

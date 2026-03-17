@@ -395,3 +395,32 @@ class WorkoutPlanExerciseUpdate(BaseModel):
 
 # Resolve forward reference
 WorkoutPlanExerciseResponse.model_rebuild()
+
+
+# --- Goals ---
+
+class GoalCreate(BaseModel):
+    title: str = Field(..., min_length=1, max_length=200)
+    description: Optional[str] = None
+    target_date: Optional[str] = Field(None, description="Date in YYYY-MM-DD format")
+
+
+class GoalUpdate(BaseModel):
+    title: Optional[str] = Field(None, min_length=1, max_length=200)
+    description: Optional[str] = None
+    target_date: Optional[str] = Field(None, description="Date in YYYY-MM-DD format")
+    is_achieved: Optional[bool] = None
+
+
+class GoalResponse(BaseModel):
+    id: int
+    user_id: int
+    title: str
+    description: Optional[str] = None
+    target_date: Optional[str] = None
+    is_achieved: bool
+    created_at: str
+    updated_at: Optional[str] = None
+
+    class Config:
+        from_attributes = True
