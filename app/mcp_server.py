@@ -28,7 +28,10 @@ from app.models import (
     WorkoutPlanExercise,
 )
 
-mcp = FastMCP("Fit Tracker")
+mcp = FastMCP(
+    "Fit Tracker",
+    transport_security={"enable_dns_rebinding_protection": False},
+)
 
 
 @contextmanager
