@@ -23,6 +23,9 @@ class Settings(BaseSettings):
 
     # Registration protection (if set, required in POST /register)
     registration_code: str = os.getenv("REGISTRATION_CODE", "")
+
+    # MCP server
+    mcp_api_key: str = os.getenv("MCP_API_KEY", "")
     
     class Config:
         env_file = ".env"

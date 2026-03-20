@@ -1,11 +1,13 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_redoc_html
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from app.database import engine, Base, SessionLocal
 from app.models import User, Weight, MetricEntry  # Import models so tables are created
 from app.routers import auth, weights, profile, metrics, admin, plans, goals
 from app.seed_exercises import seed_global_exercises
+from app.config import settings
+from app.mcp_server import mcp
 
 # Create database tables (must import models first)
 Base.metadata.create_all(bind=engine)
@@ -23,6 +25,18 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url=None,  # We serve ReDoc via custom route below for reliable CDN/loading
 )
+
+# MCP auth middleware — runs before CORS, checked only for /mcp/* paths
+@app.middleware("http")
+async def mcp_auth_middleware(request: Request, call_next):
+    if request.url.path.startswith("/mcp"):
+        if not settings.mcp_api_key:
+            return JSONResponse({"error": "MCP not configured (MCP_API_KEY not set)"}, status_code=503)
+        auth_header = request.headers.get("Authorization", "")
+        x_api_key = request.headers.get("X-API-Key", "")
+        if auth_header != f"Bearer {settings.mcp_api_key}" and x_api_key != settings.mcp_api_key:
+            return JSONResponse({"error": "Unauthorized"}, status_code=401)
+    return await call_next(request)
 
 # Configure CORS
 app.add_middleware(
@@ -63,6 +77,11 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+
+# Mount MCP server — agents connect at /mcp/mcp (streamable HTTP)
+# Auth: Authorization: Bearer <MCP_API_KEY>  or  X-API-Key: <MCP_API_KEY>
+app.mount("/mcp", mcp.streamable_http_app())
 
 
 @app.get("/reset-password", response_class=HTMLResponse)
