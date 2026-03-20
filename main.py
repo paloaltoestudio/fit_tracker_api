@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_redoc_html
@@ -18,12 +19,20 @@ try:
 finally:
     db.close()
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    async with mcp.session_manager.run():
+        yield
+
+
 app = FastAPI(
     title="Fit Tracker API",
     version="1.0.0",
     description="REST API for fitness tracking: weight, body measurements, and metrics.",
     docs_url="/docs",
     redoc_url=None,  # We serve ReDoc via custom route below for reliable CDN/loading
+    lifespan=lifespan,
 )
 
 # MCP auth middleware — runs before CORS, checked only for /mcp/* paths
